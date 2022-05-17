@@ -16,7 +16,7 @@ int main()
 {
     int sockfd;
     char buffer[MAXLINE];
-    char* hello = "Hello from client";
+    char msg[32];
     struct sockaddr_in servaddr;
 
     // Creating socket file descriptor
@@ -33,18 +33,26 @@ int main()
     servaddr.sin_port = htons(PORT);
     servaddr.sin_addr.s_addr = INADDR_ANY;
 
-    int n, len;
+    int n, len, thing;
+    thing = 0;
 
-    sendto(sockfd, (const char *)hello, strlen(hello),
-           MSG_CONFIRM, (const struct sockaddr *) &servaddr,
-           sizeof(servaddr));
-    printf("Hello message sent.\n");
+    while (1)
+    {
+        sprintf(msg, "From client: %d", thing);
+        sendto(sockfd, (const char *)msg, strlen(msg),
+               MSG_CONFIRM, (const struct sockaddr *) &servaddr,
+               sizeof(servaddr));
+        printf("Message sent with %d.\n", thing);
+        ++thing;
 
-    n = recvfrom(sockfd, (char *)buffer, MAXLINE,
-                 MSG_WAITALL, (struct sockaddr *) &servaddr,
-                 &len);
-    buffer[n] = '\0';
-    printf("Server: %s\n", buffer);
+        sleep(1);
+    }
+
+    // n = recvfrom(sockfd, (char *)buffer, MAXLINE,
+    //              MSG_WAITALL, (struct sockaddr *) &servaddr,
+    //              &len);
+    // buffer[n] = '\0';
+    // printf("Server: %s\n", buffer);
 
     close(sockfd);
     return 0;
