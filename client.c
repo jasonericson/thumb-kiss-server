@@ -12,12 +12,21 @@
 #define MAXLINE 1024
 
 // Driver code
-int main()
+int main(int argc, char* argv[])
 {
+    char id;
     int sockfd;
     char buffer[MAXLINE];
     char msg[32];
     struct sockaddr_in servaddr;
+
+    if (argc != 2)
+    {
+        perror("Wrong number of arguments.");
+        exit(EXIT_FAILURE);
+    }
+
+    id = argv[1][0];
 
     // Creating socket file descriptor
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
@@ -38,7 +47,7 @@ int main()
 
     while (1)
     {
-        sprintf(msg, "From client: %d", thing);
+        sprintf(msg, "%c%d", id, thing);
         sendto(sockfd, (const char *)msg, strlen(msg),
                MSG_CONFIRM, (const struct sockaddr *) &servaddr,
                sizeof(servaddr));

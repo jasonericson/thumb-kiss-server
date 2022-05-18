@@ -16,6 +16,7 @@ int main()
     char buffer[MAXLINE];
     char* hello = "Hello from server";
     struct sockaddr_in servaddr, cliaddr;
+    struct sockaddr_in *wanda_addr, *jason_addr;
 
     // Creating socket file descriptor
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
@@ -26,6 +27,8 @@ int main()
 
     memset(&servaddr, 0, sizeof(servaddr));
     memset(&cliaddr, 0, sizeof(cliaddr));
+    wanda_addr = NULL;
+    jason_addr = NULL;
 
     // Filling server information
     servaddr.sin_family = AF_INET;
@@ -48,8 +51,33 @@ int main()
         n = recvfrom(sockfd, (char*)buffer, MAXLINE,
                      MSG_WAITALL, (struct sockaddr*) &cliaddr,
                      &len);
+        if (n < 2)
+        {
+            printf("Malformed message.");
+            continue;
+        }
+
         buffer[n] = '\0';
-        printf("Client: %s\n", buffer);
+        if (buffer[0] == 'w')
+        {
+            if (wanda_addr == NULL)
+            {
+                wanda_addr = malloc(len);
+                memcpy(wanda_addr, &cliaddr, len);
+            }
+
+            printf("Wanda (port %d): %s\n", wanda_addr->sin_port, buffer + 1);
+        }
+        else
+        {
+            if (jason_addr == NULL)
+            {
+                jason_addr = malloc(len);
+                memcpy(jason_addr, &cliaddr, len);
+            }
+
+            printf("Jason (port %d): %s\n", jason_addr->sin_port, buffer + 1);
+        }
     }
 
     // sendto(sockfd, (const char*)hello, strlen(hello),
