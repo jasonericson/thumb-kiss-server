@@ -7,18 +7,38 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <pthread.h>
 
 #define PORT 8080
 #define MAXLINE 1024
+
+int sockfd;
+struct sockaddr_in servaddr;
+int other_client_value;
+
+void* recv_from_other_client(void* ptr)
+{
+    char buffer[MAXLINE];
+    int len, n;
+
+    len = sizeof(servaddr);
+    while (1)
+    {
+        n = recvfrom(sockfd, (char*)buffer, MAXLINE,
+                     MSG_WAITALL, (struct sockaddr *) &servaddr,
+                     &len);
+        buffer[n] = '\0';
+        other_client_value = atoi(buffer);
+    }
+}
 
 // Driver code
 int main(int argc, char* argv[])
 {
     char id;
-    int sockfd;
     char buffer[MAXLINE];
     char msg[32];
-    struct sockaddr_in servaddr;
+    pthread_t recv_thread;
 
     if (argc != 2)
     {
@@ -42,16 +62,20 @@ int main(int argc, char* argv[])
     servaddr.sin_port = htons(PORT);
     servaddr.sin_addr.s_addr = INADDR_ANY;
 
+    pthread_create(&recv_thread, NULL, recv_from_other_client, NULL);
+
     int n, len, thing;
     thing = 0;
 
     while (1)
     {
+        len = sizeof(servaddr);
         sprintf(msg, "%c%d", id, thing);
         sendto(sockfd, (const char *)msg, strlen(msg),
                MSG_CONFIRM, (const struct sockaddr *) &servaddr,
-               sizeof(servaddr));
+               len);
         printf("Message sent with %d.\n", thing);
+        printf("Value from other client: %d\n", other_client_value);
         ++thing;
 
         sleep(1);

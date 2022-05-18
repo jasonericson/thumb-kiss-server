@@ -17,6 +17,7 @@ int main()
     char* hello = "Hello from server";
     struct sockaddr_in servaddr, cliaddr;
     struct sockaddr_in *wanda_addr, *jason_addr;
+    char msg[32];
 
     // Creating socket file descriptor
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
@@ -53,23 +54,33 @@ int main()
                      &len);
         if (n < 2)
         {
-            printf("Malformed message.");
+            printf("Malformed message.\n");
             continue;
         }
 
         buffer[n] = '\0';
         if (buffer[0] == 'w')
         {
+            // From Wanda
             if (wanda_addr == NULL)
             {
                 wanda_addr = malloc(len);
                 memcpy(wanda_addr, &cliaddr, len);
             }
 
-            printf("Wanda (port %d): %s\n", wanda_addr->sin_port, buffer + 1);
+            printf("From Wanda (port %d): %s\n", wanda_addr->sin_port, buffer + 1);
+
+            if (jason_addr != NULL)
+            {
+                sendto(sockfd, (const char *)(buffer + 1), n - 1,
+                    MSG_CONFIRM, (const struct sockaddr *) jason_addr,
+                    len);
+                printf("To Jason (port %d): %s\n", jason_addr->sin_port, buffer + 1);
+            }
         }
         else
         {
+            // From Jason
             if (jason_addr == NULL)
             {
                 jason_addr = malloc(len);
@@ -77,6 +88,14 @@ int main()
             }
 
             printf("Jason (port %d): %s\n", jason_addr->sin_port, buffer + 1);
+
+            if (wanda_addr != NULL)
+            {
+                sendto(sockfd, (const char *)(buffer + 1), n - 1,
+                    MSG_CONFIRM, (const struct sockaddr *) wanda_addr,
+                    len);
+                printf("To Wanda (port %d): %s\n", wanda_addr->sin_port, buffer + 1);
+            }
         }
     }
 
