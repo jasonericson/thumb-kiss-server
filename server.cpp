@@ -14,7 +14,6 @@ int main()
 {
     int sockfd;
     char buffer[MAXLINE];
-    char* hello = "Hello from server";
     struct sockaddr_in servaddr, cliaddr;
     struct sockaddr_in *wanda_addr, *jason_addr;
     char msg[32];
@@ -44,7 +43,8 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    int len, n;
+    socklen_t len;
+    int n;
 
     while (1)
     {
@@ -64,7 +64,7 @@ int main()
             // From Wanda
             if (wanda_addr == NULL)
             {
-                wanda_addr = malloc(len);
+                wanda_addr = (sockaddr_in*)malloc(len);
                 memcpy(wanda_addr, &cliaddr, len);
             }
 
@@ -83,7 +83,7 @@ int main()
             // From Jason
             if (jason_addr == NULL)
             {
-                jason_addr = malloc(len);
+                jason_addr = (sockaddr_in*)malloc(len);
                 memcpy(jason_addr, &cliaddr, len);
             }
 
@@ -98,11 +98,6 @@ int main()
             }
         }
     }
-
-    // sendto(sockfd, (const char*)hello, strlen(hello),
-    //        MSG_CONFIRM, (const struct sockaddr*) &cliaddr,
-    //        len);
-    // printf("Hello message sent.\n");
 
     return 0;
 }

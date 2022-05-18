@@ -19,7 +19,8 @@ int other_client_value;
 void* recv_from_other_client(void* ptr)
 {
     char buffer[MAXLINE];
-    int len, n;
+    socklen_t len;
+    int n;
 
     len = sizeof(servaddr);
     while (1)
@@ -64,7 +65,8 @@ int main(int argc, char* argv[])
 
     pthread_create(&recv_thread, NULL, recv_from_other_client, NULL);
 
-    int n, len, thing;
+    socklen_t len;
+    int n, thing;
     thing = 0;
 
     while (1)
