@@ -6,7 +6,9 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include "rapidjson/rapidjson.h"
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 
 #define PORT    8080
 #define MAXLINE 1024
@@ -60,7 +62,11 @@ int main()
         }
 
         buffer[n] = '\0';
-        if (buffer[0] == 'w')
+
+        rapidjson::Document in_doc;
+        in_doc.Parse(buffer);
+
+        if (in_doc.GetObject()["id"].GetString()[0] == 'w')
         {
             // From Wanda
             if (wanda_addr == NULL)
@@ -69,19 +75,28 @@ int main()
                 memcpy(wanda_addr, &cliaddr, len);
             }
 
-            printf("From Wanda (port %d): %s\n", wanda_addr->sin_port, buffer + 1);
+            printf("From Wanda (port %d): %s\n", wanda_addr->sin_port, buffer);
 
             if (jason_addr != NULL)
             {
-                rapidjson::Document doc;
-                doc.SetObject();
+                rapidjson::Document out_doc;
+                out_doc.SetObject();
 
-                Value 
+                rapidjson::Value pos_val;
+                pos_val.SetObject();
+                pos_val.AddMember("x", in_doc.GetObject()["pos"].GetObject()["x"].GetFloat(), out_doc.GetAllocator());
+                pos_val.AddMember("y", in_doc.GetObject()["pos"].GetObject()["y"].GetFloat(), out_doc.GetAllocator());
+                out_doc.AddMember("pos", pos_val, out_doc.GetAllocator());
 
-                sendto(sockfd, (const char *)(buffer + 1), n - 1,
+                rapidjson::StringBuffer out_buffer;
+                rapidjson::Writer<rapidjson::StringBuffer> writer(out_buffer);
+                out_doc.Accept(writer);
+                const char* json_string = out_buffer.GetString();
+
+                sendto(sockfd, json_string, strlen(json_string),
                     MSG_CONFIRM, (const struct sockaddr *) jason_addr,
                     len);
-                printf("To Jason (port %d): %s\n", jason_addr->sin_port, buffer + 1);
+                printf("To Jason (port %d): %s\n", jason_addr->sin_port, json_string);
             }
         }
         else
@@ -93,14 +108,28 @@ int main()
                 memcpy(jason_addr, &cliaddr, len);
             }
 
-            printf("Jason (port %d): %s\n", jason_addr->sin_port, buffer + 1);
+            printf("Jason (port %d): %s\n", jason_addr->sin_port, buffer);
 
             if (wanda_addr != NULL)
             {
-                sendto(sockfd, (const char *)(buffer + 1), n - 1,
+                rapidjson::Document out_doc;
+                out_doc.SetObject();
+
+                rapidjson::Value pos_val;
+                pos_val.SetObject();
+                pos_val.AddMember("x", in_doc.GetObject()["pos"].GetObject()["x"].GetFloat(), out_doc.GetAllocator());
+                pos_val.AddMember("y", in_doc.GetObject()["pos"].GetObject()["y"].GetFloat(), out_doc.GetAllocator());
+                out_doc.AddMember("pos", pos_val, out_doc.GetAllocator());
+
+                rapidjson::StringBuffer out_buffer;
+                rapidjson::Writer<rapidjson::StringBuffer> writer(out_buffer);
+                out_doc.Accept(writer);
+                const char* json_string = out_buffer.GetString();
+
+                sendto(sockfd, json_string, strlen(json_string),
                     MSG_CONFIRM, (const struct sockaddr *) wanda_addr,
                     len);
-                printf("To Wanda (port %d): %s\n", wanda_addr->sin_port, buffer + 1);
+                printf("To Wanda (port %d): %s\n", wanda_addr->sin_port, json_string);
             }
         }
     }

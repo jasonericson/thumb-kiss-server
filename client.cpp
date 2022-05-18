@@ -34,11 +34,11 @@ void* recv_from_other_client(void* ptr)
                      &len);
         buffer[n] = '\0';
 
-        // rapidjson::Document doc;
-        // doc.Parse(buffer);
+        rapidjson::Document doc;
+        doc.Parse(buffer);
 
-        // other_client_x = doc["pos"].GetObject()["x"];
-        // other_client_y = doc["pos"].GetObject()["y"];
+        other_client_x = doc["pos"].GetObject()["x"].GetFloat();
+        other_client_y = doc["pos"].GetObject()["y"].GetFloat();
     }
 }
 
@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
     servaddr.sin_port = htons(PORT);
     servaddr.sin_addr.s_addr = INADDR_ANY;
 
-    // pthread_create(&recv_thread, NULL, recv_from_other_client, NULL);
+    pthread_create(&recv_thread, NULL, recv_from_other_client, NULL);
 
     socklen_t len;
     int n;
@@ -92,24 +92,25 @@ int main(int argc, char* argv[])
 
     while (1)
     {
-        len = sizeof(servaddr);
-        
-        // sendto(sockfd, doc., strlen(msg),
-        //        MSG_CONFIRM, (const struct sockaddr *) &servaddr,
-        //        len);
-        // printf("Message sent with %d.\n", thing);
-        // printf("Other client position: (%f, %f)\n", other_client_x, other_client_y);
-        
-        doc["pos"]["x"] = x;
-        doc["pos"]["y"] = y;
-
         rapidjson::StringBuffer buffer;
         rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
         doc.Accept(writer);
-        printf("%s\n", buffer.GetString());
+        const char* json_string = buffer.GetString();
+        printf("%s\n", json_string);
 
+        len = sizeof(servaddr);
+        
+        sendto(sockfd, json_string, strlen(json_string),
+               MSG_CONFIRM, (const struct sockaddr *) &servaddr,
+               len);
+        printf("Our position: (%f, %f).\n", x, y);
+        printf("Other client position: (%f, %f)\n", other_client_x, other_client_y);
+        
         x += 1.0f;
         y += 2.0f;
+
+        doc["pos"]["x"] = x;
+        doc["pos"]["y"] = y;
 
         sleep(1);
     }
