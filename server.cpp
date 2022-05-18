@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include "rapidjson/rapidjson.h"
 
 #define PORT    8080
 #define MAXLINE 1024
@@ -72,6 +73,11 @@ int main()
 
             if (jason_addr != NULL)
             {
+                rapidjson::Document doc;
+                doc.SetObject();
+
+                Value 
+
                 sendto(sockfd, (const char *)(buffer + 1), n - 1,
                     MSG_CONFIRM, (const struct sockaddr *) jason_addr,
                     len);
