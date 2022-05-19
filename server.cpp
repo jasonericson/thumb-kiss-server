@@ -94,7 +94,7 @@ int main()
                 const char* json_string = out_buffer.GetString();
 
                 sendto(sockfd, json_string, strlen(json_string),
-                    MSG_CONFIRM, (const struct sockaddr *) jason_addr,
+                    0, (const struct sockaddr *) jason_addr,
                     len);
                 printf("To Jason (port %d): %s\n", jason_addr->sin_port, json_string);
             }
@@ -127,7 +127,7 @@ int main()
                 const char* json_string = out_buffer.GetString();
 
                 sendto(sockfd, json_string, strlen(json_string),
-                    MSG_CONFIRM, (const struct sockaddr *) wanda_addr,
+                    0, (const struct sockaddr *) wanda_addr,
                     len);
                 printf("To Wanda (port %d): %s\n", wanda_addr->sin_port, json_string);
             }

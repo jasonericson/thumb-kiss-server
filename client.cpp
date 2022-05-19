@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
         len = sizeof(servaddr);
         
         sendto(sockfd, json_string, strlen(json_string),
-               MSG_CONFIRM, (const struct sockaddr *) &servaddr,
+               0, (const struct sockaddr *) &servaddr,
                len);
         printf("Our position: (%f, %f).\n", x, y);
         printf("Other client position: (%f, %f)\n", other_client_x, other_client_y);
