@@ -55,11 +55,6 @@ int main()
         n = recvfrom(sockfd, (char*)buffer, MAXLINE,
                      MSG_WAITALL, (struct sockaddr*) &cliaddr,
                      &len);
-        if (n < 2)
-        {
-            printf("Malformed message.\n");
-            continue;
-        }
 
         buffer[n] = '\0';
 
@@ -75,7 +70,6 @@ int main()
             }
 
             memcpy(wanda_addr, &cliaddr, len);
-            wanda_addr->sin_port = htons(in_doc.GetObject()["listenPort"].GetInt());
 
             printf("From Wanda (port %d): %s\n", wanda_addr->sin_port, buffer);
 
@@ -96,7 +90,6 @@ int main()
             }
 
             memcpy(jason_addr, &cliaddr, len);
-            jason_addr->sin_port = htons(in_doc.GetObject()["listenPort"].GetInt());
 
             printf("Jason (port %d): %s\n", jason_addr->sin_port, buffer);
 
