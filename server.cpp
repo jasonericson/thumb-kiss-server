@@ -13,6 +13,8 @@
 #define PORT    1234
 #define MAXLINE 1024
 
+#define VERBOSE 0
+
 int main()
 {
     int sockfd;
@@ -71,14 +73,18 @@ int main()
 
             memcpy(wanda_addr, &cliaddr, len);
 
+#if VERBOSE
             printf("From Wanda (port %d): %s\n", wanda_addr->sin_port, buffer);
+#endif
 
             if (jason_addr != NULL)
             {
                 sendto(sockfd, buffer, strlen(buffer),
                     0, (const struct sockaddr *) jason_addr,
                     len);
+#if VERBOSE
                 printf("To Jason (port %d): %s\n", jason_addr->sin_port, buffer);
+#endif
             }
         }
         else
@@ -90,15 +96,18 @@ int main()
             }
 
             memcpy(jason_addr, &cliaddr, len);
-
+#if VERBOSE
             printf("Jason (port %d): %s\n", jason_addr->sin_port, buffer);
+#endif
 
             if (wanda_addr != NULL)
             {
                 sendto(sockfd, buffer, strlen(buffer),
                     0, (const struct sockaddr *) wanda_addr,
                     len);
+#if VERBOSE
                 printf("To Wanda (port %d): %s\n", wanda_addr->sin_port, buffer);
+#endif
             }
         }
     }
